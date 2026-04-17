@@ -18,11 +18,11 @@
             <div class="upload-section">
                 <h3>Upload PPT</h3>
                 <form id="uploadForm">
-                    <label class="upload-area" id="uploadArea">
-                        <input type="file" id="fileInput" accept=".pptx,.ppt,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-powerpoint" hidden>
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="fileInput" accept=".pptx" hidden>
                         <div class="upload-icon">&#128196;</div>
                         <span id="uploadLabel">Click to select a .pptx file</span>
-                    </label>
+                    </div>
                     <button type="submit" id="uploadBtn" disabled>Upload & Process</button>
                 </form>
                 <div id="uploadStatus" class="status-message"></div>

@@ -22,15 +22,18 @@ def allowed_file(filename):
 
 @app.route("/api/upload", methods=["POST"])
 def upload_file():
+    print("Files in request:", list(request.files.keys()))
     if "file" not in request.files:
         return jsonify({"error": "No file provided"}), 400
 
     file = request.files["file"]
+    print("Filename:", file.filename)
     if file.filename == "":
         return jsonify({"error": "No file selected"}), 400
 
     if not allowed_file(file.filename):
-        return jsonify({"error": "Only .pptx and .ppt files are allowed"}), 400
+        print("Rejected file extension:", file.filename)
+        return jsonify({"error": f"Only .pptx and .ppt files are allowed. Got: '{file.filename}'"}), 400
 
     filename = secure_filename(file.filename)
     file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
@@ -60,6 +63,8 @@ def upload_file():
         }), 200
 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
     finally:
         # Clean up uploaded file

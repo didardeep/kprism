@@ -1,3 +1,5 @@
+const API_BASE = "http://localhost:5000";
+
 const chatMessages = document.getElementById("chatMessages");
 const chatForm = document.getElementById("chatForm");
 const chatInput = document.getElementById("chatInput");
@@ -19,6 +21,12 @@ uploadArea.addEventListener("click", () => fileInput.click());
 fileInput.addEventListener("change", () => {
   if (fileInput.files.length > 0) {
     const file = fileInput.files[0];
+    const ext = file.name.split(".").pop().toLowerCase();
+    if (ext !== "pptx" && ext !== "ppt") {
+      alert("Please select a .pptx or .ppt file only.");
+      fileInput.value = "";
+      return;
+    }
     uploadLabel.textContent = file.name;
     uploadArea.classList.add("has-file");
     uploadBtn.disabled = false;
@@ -39,7 +47,7 @@ uploadForm.addEventListener("submit", async (e) => {
   showStatus("Uploading and processing PPT... This may take a moment.", "loading");
 
   try {
-    const res = await fetch("/api/upload", {
+    const res = await fetch(`${API_BASE}/api/upload`, {
       method: "POST",
       body: formData,
     });
@@ -78,7 +86,7 @@ chatForm.addEventListener("submit", async (e) => {
   const typingEl = showTyping();
 
   try {
-    const res = await fetch("/api/chat", {
+    const res = await fetch(`${API_BASE}/api/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question }),
@@ -104,7 +112,7 @@ chatForm.addEventListener("submit", async (e) => {
 // Load documents list
 async function loadDocuments() {
   try {
-    const res = await fetch("/api/documents");
+    const res = await fetch(`${API_BASE}/api/documents`);
     const data = await res.json();
 
     if (data.documents && data.documents.length > 0) {
@@ -134,7 +142,7 @@ async function deleteDocument(filename) {
   if (!confirm(`Delete "${filename}" and all its embeddings?`)) return;
 
   try {
-    const res = await fetch(`/api/documents/${encodeURIComponent(filename)}`, {
+    const res = await fetch(`${API_BASE}/api/documents/${encodeURIComponent(filename)}`, {
       method: "DELETE",
     });
     const data = await res.json();
