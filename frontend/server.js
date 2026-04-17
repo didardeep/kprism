@@ -1,5 +1,6 @@
 const express = require("express");
 const { createProxyMiddleware } = require("http-proxy-middleware");
+const { exec } = require("child_process");
 const path = require("path");
 
 const app = express();
@@ -24,6 +25,11 @@ app.get("*", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Frontend running at http://localhost:${PORT}`);
+  const url = `http://localhost:${PORT}`;
+  console.log(`Frontend running at ${url}`);
   console.log(`Proxying API requests to ${FLASK_BACKEND}`);
+
+  // Auto-open browser
+  const start = process.platform === "win32" ? "start" : process.platform === "darwin" ? "open" : "xdg-open";
+  exec(`${start} ${url}`);
 });
