@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 
 from config import UPLOAD_FOLDER
 from db import init_db, store_embeddings, get_all_documents, delete_document
-from ppt_processor import process_ppt
+from document_processor import process_document
 from embeddings import get_embeddings
 from rag import ask
 
@@ -13,7 +13,7 @@ app = Flask(__name__)
 CORS(app)
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-ALLOWED_EXTENSIONS = {"pptx", "ppt"}
+ALLOWED_EXTENSIONS = {"pptx", "ppt", "pdf"}
 
 
 def allowed_file(filename):
@@ -22,18 +22,15 @@ def allowed_file(filename):
 
 @app.route("/api/upload", methods=["POST"])
 def upload_file():
-    print("Files in request:", list(request.files.keys()))
     if "file" not in request.files:
         return jsonify({"error": "No file provided"}), 400
 
     file = request.files["file"]
-    print("Filename:", file.filename)
     if file.filename == "":
         return jsonify({"error": "No file selected"}), 400
 
     if not allowed_file(file.filename):
-        print("Rejected file extension:", file.filename)
-        return jsonify({"error": f"Only .pptx and .ppt files are allowed. Got: '{file.filename}'"}), 400
+        return jsonify({"error": f"Only .pptx, .ppt and .pdf files are allowed. Got: '{file.filename}'"}), 400
 
     filename = secure_filename(file.filename)
     file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
@@ -41,9 +38,9 @@ def upload_file():
 
     try:
         # Extract text and chunk
-        chunks = process_ppt(file_path)
+        chunks = process_document(file_path)
         if not chunks:
-            return jsonify({"error": "No text content found in the PPT file"}), 400
+            return jsonify({"error": "No text content found in the file"}), 400
 
         # Generate embeddings
         chunk_texts = [c["chunk_text"] for c in chunks]
@@ -51,7 +48,7 @@ def upload_file():
 
         # Store in database
         chunks_with_embeddings = [
-            (chunks[i]["slide_number"], chunks[i]["chunk_text"], embeddings[i])
+            (chunks[i]["page_number"], chunks[i]["chunk_text"], embeddings[i])
             for i in range(len(chunks))
         ]
         store_embeddings(filename, chunks_with_embeddings)

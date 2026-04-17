@@ -20,7 +20,7 @@ Rules:
 1. Answer ONLY using the information provided in the context below.
 2. If the answer is not found in the context, respond with: "I don't have information about that in the uploaded documents."
 3. Do not make up or infer information that is not explicitly stated in the context.
-4. When possible, mention which slide the information comes from.
+4. When possible, mention which page/slide the information comes from.
 5. Be concise and accurate in your responses."""
 
 
@@ -38,7 +38,7 @@ def build_context(results):
     context_parts = []
     for r in results:
         context_parts.append(
-            f"[Source: {r['filename']}, Slide {r['slide_number']}]\n{r['chunk_text']}"
+            f"[Source: {r['filename']}, Page {r['page_number']}]\n{r['chunk_text']}"
         )
     return "\n\n---\n\n".join(context_parts)
 
@@ -48,7 +48,7 @@ def generate_answer(query, context_chunks):
     context = build_context(context_chunks)
 
     if not context:
-        return "No documents have been uploaded yet. Please upload a PPT file first."
+        return "No documents have been uploaded yet. Please upload a file first."
 
     user_message = f"""Context from uploaded documents:
 
@@ -76,7 +76,7 @@ def ask(query):
     chunks = retrieve(query)
     answer = generate_answer(query, chunks)
     sources = [
-        {"filename": c["filename"], "slide_number": c["slide_number"], "similarity": round(c["similarity"], 3)}
+        {"filename": c["filename"], "page_number": c["page_number"], "similarity": round(c["similarity"], 3)}
         for c in chunks
     ]
     return {"answer": answer, "sources": sources}

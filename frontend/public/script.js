@@ -22,8 +22,8 @@ fileInput.addEventListener("change", () => {
   if (fileInput.files.length > 0) {
     const file = fileInput.files[0];
     const ext = file.name.split(".").pop().toLowerCase();
-    if (ext !== "pptx" && ext !== "ppt") {
-      alert("Please select a .pptx or .ppt file only.");
+    if (ext !== "pptx" && ext !== "ppt" && ext !== "pdf") {
+      alert("Please select a .pptx, .ppt or .pdf file only.");
       fileInput.value = "";
       return;
     }
@@ -58,7 +58,7 @@ uploadForm.addEventListener("submit", async (e) => {
       loadDocuments();
       // Reset upload form
       fileInput.value = "";
-      uploadLabel.textContent = "Click to select a .pptx file";
+      uploadLabel.textContent = "Click to select a .pptx or .pdf file";
       uploadArea.classList.remove("has-file");
     } else {
       showStatus(`Error: ${data.error}`, "error");
@@ -166,7 +166,7 @@ function addMessage(content, type, sources) {
 
   if (sources && sources.length > 0) {
     const sourceLabels = sources
-      .map((s) => `<span>${escapeHtml(s.filename)} - Slide ${s.slide_number}</span>`)
+      .map((s) => `<span>${escapeHtml(s.filename)} - Page ${s.page_number}</span>`)
       .join("");
     html += `<div class="message-sources">Sources: ${sourceLabels}</div>`;
   }

@@ -1,5 +1,4 @@
 import math
-import json
 import psycopg2
 from psycopg2.extras import execute_values, Json
 from config import DATABASE_URL
@@ -16,7 +15,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS documents (
             id SERIAL PRIMARY KEY,
             filename TEXT NOT NULL,
-            slide_number INTEGER NOT NULL,
+            page_number INTEGER NOT NULL,
             chunk_text TEXT NOT NULL,
             embedding JSONB NOT NULL
         );
@@ -28,17 +27,17 @@ def init_db():
 
 def store_embeddings(filename, chunks_with_embeddings):
     """
-    chunks_with_embeddings: list of (slide_number, chunk_text, embedding)
+    chunks_with_embeddings: list of (page_number, chunk_text, embedding)
     """
     conn = get_connection()
     cur = conn.cursor()
     values = [
-        (filename, slide_num, chunk_text, Json(embedding))
-        for slide_num, chunk_text, embedding in chunks_with_embeddings
+        (filename, page_num, chunk_text, Json(embedding))
+        for page_num, chunk_text, embedding in chunks_with_embeddings
     ]
     execute_values(
         cur,
-        "INSERT INTO documents (filename, slide_number, chunk_text, embedding) VALUES %s",
+        "INSERT INTO documents (filename, page_number, chunk_text, embedding) VALUES %s",
         values
     )
     conn.commit()
@@ -59,24 +58,22 @@ def cosine_similarity(vec_a, vec_b):
 def search_similar(query_embedding, top_k=5):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT filename, slide_number, chunk_text, embedding FROM documents;")
+    cur.execute("SELECT filename, page_number, chunk_text, embedding FROM documents;")
     rows = cur.fetchall()
     cur.close()
     conn.close()
 
-    # Compute cosine similarity in Python
     scored = []
     for row in rows:
-        stored_embedding = row[3]  # already parsed from jsonb
+        stored_embedding = row[3]
         similarity = cosine_similarity(query_embedding, stored_embedding)
         scored.append({
             "filename": row[0],
-            "slide_number": row[1],
+            "page_number": row[1],
             "chunk_text": row[2],
             "similarity": similarity,
         })
 
-    # Sort by similarity descending and return top_k
     scored.sort(key=lambda x: x["similarity"], reverse=True)
     return scored[:top_k]
 
