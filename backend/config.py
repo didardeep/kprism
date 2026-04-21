@@ -10,6 +10,10 @@ AZURE_OPENAI_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-01")
 AZURE_EMBEDDING_DEPLOYMENT = os.getenv("AZURE_EMBEDDING_DEPLOYMENT")
 AZURE_CHAT_DEPLOYMENT = os.getenv("AZURE_CHAT_DEPLOYMENT")
 
+# Azure Document Intelligence
+AZURE_DI_ENDPOINT = os.getenv("AZURE_DI_ENDPOINT")
+AZURE_DI_KEY = os.getenv("AZURE_DI_KEY")
+
 # PostgreSQL
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/kprism_bot")
 

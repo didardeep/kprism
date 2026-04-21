@@ -1,6 +1,8 @@
 import os
 from pptx import Presentation
-import fitz  # PyMuPDF
+from azure.ai.documentintelligence import DocumentIntelligenceClient
+from azure.core.credentials import AzureKeyCredential
+from config import AZURE_DI_ENDPOINT, AZURE_DI_KEY
 
 
 def extract_text_from_ppt(file_path):
@@ -39,20 +41,39 @@ def extract_text_from_ppt(file_path):
 
 
 def extract_text_from_pdf(file_path):
-    """Extract text from all pages in a PDF file."""
-    doc = fitz.open(file_path)
+    """Extract text from all pages in a PDF using Azure Document Intelligence."""
+    client = DocumentIntelligenceClient(
+        endpoint=AZURE_DI_ENDPOINT,
+        credential=AzureKeyCredential(AZURE_DI_KEY),
+    )
+
+    with open(file_path, "rb") as f:
+        poller = client.begin_analyze_document(
+            "prebuilt-layout",
+            analyze_request=f,
+            content_type="application/octet-stream",
+            output_content_format="markdown",
+        )
+    result = poller.result()
+
+    # Group content by page
     pages_text = []
+    if result.pages:
+        for page in result.pages:
+            page_num = page.page_number
+            # Collect all lines on this page
+            lines = []
+            if page.lines:
+                for line in page.lines:
+                    text = line.content.strip()
+                    if text:
+                        lines.append(text)
+            if lines:
+                pages_text.append({
+                    "page_number": page_num,
+                    "text": "\n".join(lines),
+                })
 
-    for page_num in range(len(doc)):
-        page = doc[page_num]
-        text = page.get_text().strip()
-        if text:
-            pages_text.append({
-                "page_number": page_num + 1,
-                "text": text
-            })
-
-    doc.close()
     return pages_text
 
 

@@ -11,6 +11,13 @@ def get_connection():
 def init_db():
     conn = get_connection()
     cur = conn.cursor()
+    # Drop old table if schema is outdated (slide_number -> page_number)
+    cur.execute("""
+        SELECT column_name FROM information_schema.columns
+        WHERE table_name = 'documents' AND column_name = 'slide_number';
+    """)
+    if cur.fetchone():
+        cur.execute("DROP TABLE documents;")
     cur.execute("""
         CREATE TABLE IF NOT EXISTS documents (
             id SERIAL PRIMARY KEY,
